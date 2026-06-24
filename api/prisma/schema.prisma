@@ -1,8 +1,188 @@
-// placeholder — schema completo na Task 2
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
+}
+
+model Conta {
+  id             String    @id @default(uuid())
+  nome           String
+  email          String    @unique
+  papeis         String[]
+  status         String    @default("ativo")
+  tipoAcesso     String    @default("pago") @map("tipo_acesso")
+  convidadoPorId String?   @map("convidado_por_id")
+  convidadoEm    DateTime? @map("convidado_em")
+  criadoEm       DateTime  @default(now()) @map("criado_em")
+
+  tokens        TokenAcesso[]
+  parceiro      Parceiro?
+  participacoes Participacao[]
+
+  @@map("contas")
+}
+
+model TokenAcesso {
+  id       String   @id @default(uuid())
+  contaId  String   @map("conta_id")
+  codigo   String
+  expiraEm DateTime @map("expira_em")
+  usado    Boolean  @default(false)
+  criadoEm DateTime @default(now()) @map("criado_em")
+
+  conta Conta @relation(fields: [contaId], references: [id], onDelete: Cascade)
+
+  @@map("tokens_acesso")
+}
+
+model Parceiro {
+  id           String  @id @default(uuid())
+  contaId      String  @unique @map("conta_id")
+  razaoSocial  String? @map("razao_social")
+  nomeFantasia String? @map("nome_fantasia")
+  cnpj         String? @unique
+  segmento     String?
+  site         String?
+  status       String  @default("ativo")
+
+  contatoNome     String? @map("contato_nome")
+  contatoEmail    String? @map("contato_email")
+  contatoTelefone String? @map("contato_telefone")
+  contatoCargo    String? @map("contato_cargo")
+
+  termosVersao   String?   @map("termos_versao")
+  termosAceitoEm DateTime? @map("termos_aceito_em")
+  termosIpAceite String?   @map("termos_ip_aceite")
+  termosHashDoc  String?   @map("termos_hash_doc")
+
+  plano            String?   @default("basico")
+  inicioAssinatura DateTime? @map("inicio_assinatura")
+  webhookUrl       String?   @map("webhook_url")
+  apiKey           String    @unique @map("api_key")
+
+  criadoEm DateTime @default(now()) @map("criado_em")
+
+  conta       Conta        @relation(fields: [contaId], references: [id])
+  campanhas   Campanha[]
+  webhookLogs WebhookLog[]
+
+  @@map("parceiros")
+}
+
+model Campanha {
+  id         String @id @default(uuid())
+  parceiroId String @map("parceiro_id")
+  nome       String
+  status     String @default("ativa")
+
+  inicioEm     DateTime? @map("inicio_em")
+  fimEm        DateTime? @map("fim_em")
+  fechamentoEm DateTime? @map("fechamento_em")
+
+  tiposCompraElegiveis   String[] @map("tipos_compra_elegiveis")
+  janelaCancelamentoDias Int      @default(30) @map("janela_cancelamento_dias")
+  atribuicao             String   @default("last-touch")
+
+  recompensaTipo          String @map("recompensa_tipo")
+  recompensaValorCentavos Int    @map("recompensa_valor_centavos")
+  diaPagamento            Int    @default(5) @map("dia_pagamento")
+
+  criadoEm DateTime @default(now()) @map("criado_em")
+
+  parceiro      Parceiro       @relation(fields: [parceiroId], references: [id])
+  participacoes Participacao[]
+
+  @@map("campanhas")
+}
+
+model Participacao {
+  id              String    @id @default(uuid())
+  campanhaId      String    @map("campanha_id")
+  afiliadoId      String    @map("afiliado_id")
+  linkIndicacao   String    @unique @map("link_indicacao")
+  codigoIndicacao String    @unique @map("codigo_indicacao")
+  chavePix        String?   @map("chave_pix")
+  status          String    @default("ativo")
+  entrouEm        DateTime  @default(now()) @map("entrou_em")
+  ultimoSaqueEm   DateTime? @map("ultimo_saque_em")
+
+  campanha   Campanha    @relation(fields: [campanhaId], references: [id])
+  afiliado   Conta       @relation(fields: [afiliadoId], references: [id])
+  conversoes Conversao[]
+  rewards    Reward[]
+
+  @@unique([campanhaId, afiliadoId])
+  @@map("participacoes")
+}
+
+model Conversao {
+  id                 String    @id @default(uuid())
+  participacaoId     String    @map("participacao_id")
+  pedidoIdExterno    String    @map("pedido_id_externo")
+  emailConvidado     String    @map("email_convidado")
+  convidadoIdExterno String?   @map("convidado_id_externo")
+  valorCentavos      Int       @map("valor_centavos")
+  tipoCompra         String    @map("tipo_compra")
+
+  produtoNome      String  @map("produto_nome")
+  produtoIdExterno String? @map("produto_id_externo")
+  produtoDescricao String? @map("produto_descricao")
+
+  status             String    @default("pendente")
+  motivoCancelamento String?   @map("motivo_cancelamento")
+  canceladoEm        DateTime? @map("cancelado_em")
+  canceladoPorId     String?   @map("cancelado_por_id")
+
+  criadoEm     DateTime  @default(now()) @map("criado_em")
+  confirmadoEm DateTime? @map("confirmado_em")
+
+  participacao Participacao @relation(fields: [participacaoId], references: [id])
+  reward       Reward?
+
+  @@unique([participacaoId, pedidoIdExterno])
+  @@map("conversoes")
+}
+
+model Reward {
+  id             String @id @default(uuid())
+  conversaoId    String @unique @map("conversao_id")
+  participacaoId String @map("participacao_id")
+
+  tipo          String
+  valorCentavos Int    @map("valor_centavos")
+
+  status         String  @default("pendente")
+  motivoReversao String? @map("motivo_reversao")
+
+  criadoEm     DateTime  @default(now()) @map("criado_em")
+  confirmadoEm DateTime? @map("confirmado_em")
+  disponivelEm DateTime? @map("disponivel_em")
+  solicitadoEm DateTime? @map("solicitado_em")
+  pagoEm       DateTime? @map("pago_em")
+  revertidoEm  DateTime? @map("revertido_em")
+
+  conversao    Conversao    @relation(fields: [conversaoId], references: [id])
+  participacao Participacao @relation(fields: [participacaoId], references: [id])
+
+  @@map("rewards")
+}
+
+model WebhookLog {
+  id         String    @id @default(uuid())
+  parceiroId String    @map("parceiro_id")
+  evento     String
+  payload    Json
+  url        String
+  statusCode Int?      @map("status_code")
+  tentativas Int       @default(0)
+  sucesso    Boolean   @default(false)
+  erro       String?
+  criadoEm   DateTime  @default(now()) @map("criado_em")
+  tentadoEm  DateTime? @map("tentado_em")
+
+  parceiro Parceiro @relation(fields: [parceiroId], references: [id])
+
+  @@map("webhook_logs")
 }
