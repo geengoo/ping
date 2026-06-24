@@ -1,4 +1,5 @@
 import { Router } from 'express'
+import { Prisma } from '@prisma/client'
 import { prisma } from '../lib/prisma'
 import { calcularReward } from '../lib/reward'
 import { validarSelfReferral } from '../lib/validate'
@@ -42,45 +43,52 @@ conversionsRouter.post('/', async (req, res) => {
     return void res.status(422).json({ error: 'campanha não está ativa' })
   }
 
+  const tiposElegiveis = participacao.campanha.tiposCompraElegiveis as string[]
+  if (!tiposElegiveis.includes(purchase_type)) {
+    return void res.status(422).json({ error: 'tipo de compra não elegível para esta campanha' })
+  }
+
   if (validarSelfReferral(participacao.afiliado.email, customer_email)) {
     return void res.status(422).json({ error: 'self-referral não permitido' })
   }
 
-  const existente = await prisma.conversao.findUnique({
-    where: { participacaoId_pedidoIdExterno: { participacaoId: affiliate_id, pedidoIdExterno: order_id } },
-  })
-  if (existente) return void res.status(409).json({ error: 'pedido já registrado' })
-
   const rewardValor = calcularReward(participacao.campanha, amount_cents)
 
-  const conversao = await prisma.conversao.create({
-    data: {
-      participacaoId: affiliate_id,
-      pedidoIdExterno: order_id,
-      emailConvidado: customer_email,
-      convidadoIdExterno: customer_id,
-      valorCentavos: amount_cents,
-      tipoCompra: purchase_type,
-      produtoNome: product.name,
-      produtoIdExterno: product.id,
-      produtoDescricao: product.description,
-      reward: {
-        create: {
-          participacaoId: affiliate_id,
-          tipo: participacao.campanha.recompensaTipo,
-          valorCentavos: rewardValor,
+  try {
+    const conversao = await prisma.conversao.create({
+      data: {
+        participacaoId: affiliate_id,
+        pedidoIdExterno: order_id,
+        emailConvidado: customer_email,
+        convidadoIdExterno: customer_id,
+        valorCentavos: amount_cents,
+        tipoCompra: purchase_type,
+        produtoNome: product.name,
+        produtoIdExterno: product.id,
+        produtoDescricao: product.description,
+        reward: {
+          create: {
+            participacaoId: affiliate_id,
+            tipo: participacao.campanha.recompensaTipo,
+            valorCentavos: rewardValor,
+            status: 'pendente',
+          },
         },
       },
-    },
-    include: { reward: true },
-  })
+      include: { reward: true },
+    })
 
-  res.status(201).json({
-    conversao_id: conversao.id,
-    reward_id: conversao.reward!.id,
-    reward_valor_centavos: conversao.reward!.valorCentavos,
-    status: 'pendente',
-  })
+    res.status(201).json({
+      conversaoId: conversao.id,
+      rewardId: conversao.reward!.id,
+      status: 'pendente',
+    })
+  } catch (e) {
+    if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002') {
+      return void res.status(409).json({ error: 'pedido duplicado para esta participação' })
+    }
+    throw e
+  }
 })
 
 conversionsRouter.post('/:id/cancel', async (req, res) => {

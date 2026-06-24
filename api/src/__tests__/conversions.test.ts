@@ -71,9 +71,26 @@ describe('POST /v1/conversions', () => {
 
     expect(res.status).toBe(201)
     expect(res.body.status).toBe('pendente')
-    expect(res.body.conversao_id).toBeDefined()
-    expect(res.body.reward_id).toBeDefined()
-    expect(res.body.reward_valor_centavos).toBe(4000)
+    expect(res.body.conversaoId).toBeDefined()
+    expect(res.body.rewardId).toBeDefined()
+    expect(res.body.reward_valor_centavos).toBeUndefined()
+  })
+
+  it('rejeita tipo de compra não elegível', async () => {
+    const res = await request(app)
+      .post('/v1/conversions')
+      .set('X-API-Key', apiKey)
+      .send({
+        affiliate_id: participacaoId,
+        order_id: 'order-ineligible',
+        customer_email: 'cliente2@exemplo.com',
+        amount_cents: 14900,
+        purchase_type: 'one_time',
+        product: { name: 'Plano Mensal', id: 'mensal' },
+      })
+
+    expect(res.status).toBe(422)
+    expect(res.body.error).toMatch(/tipo de compra não elegível/)
   })
 
   it('rejeita self-referral', async () => {
