@@ -5,8 +5,9 @@ import { codigoUnico } from '../lib/validate'
 export const affiliatesRouter = Router()
 
 affiliatesRouter.post('/', async (req, res) => {
-  const { email, nome } = req.body as { email?: string; nome?: string }
+  const { email, nome, chavePix } = req.body as { email?: string; nome?: string; chavePix?: string }
   if (!email) return void res.status(400).json({ error: 'email obrigatório' })
+  if (!chavePix) return void res.status(400).json({ error: 'chavePix é obrigatória' })
 
   const parceiro = req.parceiro
 
@@ -31,11 +32,7 @@ affiliatesRouter.post('/', async (req, res) => {
     where: { campanhaId_afiliadoId: { campanhaId: campanha.id, afiliadoId: conta.id } },
   })
   if (existente) {
-    return void res.status(200).json({
-      participacao_id: existente.id,
-      link: existente.linkIndicacao,
-      codigo: existente.codigoIndicacao,
-    })
+    return void res.status(409).json({ error: 'afiliado já cadastrado nesta campanha' })
   }
 
   const codigo = await codigoUnico()
@@ -48,10 +45,11 @@ affiliatesRouter.post('/', async (req, res) => {
       afiliadoId: conta.id,
       codigoIndicacao: codigo,
       linkIndicacao: link,
+      chavePix,
     },
   })
 
-  res.status(201).json({ participacao_id: participacao.id, link, codigo })
+  res.status(201).json({ participacaoId: participacao.id, linkIndicacao: link, codigoIndicacao: codigo })
 })
 
 affiliatesRouter.get('/:id/balance', async (req, res) => {
