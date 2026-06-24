@@ -1,0 +1,8 @@
+// placeholder — schema completo na Task 2
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
