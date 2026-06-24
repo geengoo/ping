@@ -126,3 +126,86 @@ describe('POST /v1/conversions', () => {
     expect(res.status).toBe(409)
   })
 })
+
+describe('POST /v1/conversions/:id/cancel', () => {
+  let conversaoId: string
+  let rewardId: string
+
+  beforeEach(async () => {
+    const res = await request(app)
+      .post('/v1/conversions')
+      .set('X-API-Key', apiKey)
+      .send({
+        affiliate_id: participacaoId,
+        order_id: `order-cancel-${Date.now()}`,
+        customer_email: 'cancelar@exemplo.com',
+        amount_cents: 14900,
+        purchase_type: 'subscription',
+        product: { name: 'Plano Mensal', id: 'mensal' },
+      })
+    expect(res.status).toBe(201)
+    conversaoId = res.body.conversaoId
+    rewardId = res.body.rewardId
+  })
+
+  it('cancela conversão e reverte reward — nunca deleta', async () => {
+    const res = await request(app)
+      .post(`/v1/conversions/${conversaoId}/cancel`)
+      .set('X-API-Key', apiKey)
+      .send({ motivo: 'chargeback' })
+
+    expect(res.status).toBe(200)
+    expect(res.body.conversaoId).toBe(conversaoId)
+    expect(res.body.status).toBe('cancelada')
+    expect(res.body.motivo).toBe('chargeback')
+    expect(res.body.rewardId).toBe(rewardId)
+    expect(res.body.rewardStatus).toBe('revertido')
+
+    // Verifica que o registro NÃO foi deletado — apenas atualizado
+    const conversaoNoBanco = await prisma.conversao.findUnique({ where: { id: conversaoId } })
+    expect(conversaoNoBanco).not.toBeNull()
+    expect(conversaoNoBanco!.status).toBe('cancelada')
+    expect(conversaoNoBanco!.motivoCancelamento).toBe('chargeback')
+
+    // Verifica que o reward também foi apenas atualizado
+    const rewardNoBanco = await prisma.reward.findUnique({ where: { id: rewardId } })
+    expect(rewardNoBanco).not.toBeNull()
+    expect(rewardNoBanco!.status).toBe('revertido')
+    expect(rewardNoBanco!.motivoReversao).toBe('chargeback')
+  })
+
+  it('rejeita motivo inválido → 400', async () => {
+    const resInvalido = await request(app)
+      .post(`/v1/conversions/${conversaoId}/cancel`)
+      .set('X-API-Key', apiKey)
+      .send({ motivo: 'motivo-invalido' })
+
+    expect(resInvalido.status).toBe(400)
+    expect(resInvalido.body.error).toMatch(/motivo/)
+
+    // Sem motivo também é 400
+    const resSemMotivo = await request(app)
+      .post(`/v1/conversions/${conversaoId}/cancel`)
+      .set('X-API-Key', apiKey)
+      .send({})
+
+    expect(resSemMotivo.status).toBe(400)
+  })
+
+  it('não cancela conversão já cancelada → 409', async () => {
+    // Primeiro cancel
+    const primeiro = await request(app)
+      .post(`/v1/conversions/${conversaoId}/cancel`)
+      .set('X-API-Key', apiKey)
+      .send({ motivo: 'cancelamento' })
+    expect(primeiro.status).toBe(200)
+
+    // Segundo cancel — deve retornar 409
+    const segundo = await request(app)
+      .post(`/v1/conversions/${conversaoId}/cancel`)
+      .set('X-API-Key', apiKey)
+      .send({ motivo: 'fraude' })
+    expect(segundo.status).toBe(409)
+    expect(segundo.body.error).toMatch(/já está cancelada/)
+  })
+})

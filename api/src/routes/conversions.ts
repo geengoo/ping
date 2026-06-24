@@ -91,7 +91,70 @@ conversionsRouter.post('/', async (req, res) => {
   }
 })
 
+const MOTIVOS_VALIDOS = ['cancelamento', 'chargeback', 'fraude', 'expirado']
+
 conversionsRouter.post('/:id/cancel', async (req, res) => {
-  // implementado na Task 7
-  res.status(501).json({ error: 'not implemented' })
+  const { motivo } = req.body as { motivo?: string }
+
+  if (!motivo || !MOTIVOS_VALIDOS.includes(motivo)) {
+    return void res.status(400).json({
+      error: `motivo obrigatório e deve ser um de: ${MOTIVOS_VALIDOS.join(', ')}`,
+    })
+  }
+
+  const conversao = await prisma.conversao.findUnique({
+    where: { id: req.params.id },
+    include: {
+      participacao: { include: { campanha: true } },
+      reward: true,
+    },
+  })
+
+  if (!conversao) {
+    return void res.status(404).json({ error: 'conversão não encontrada' })
+  }
+
+  if (conversao.participacao.campanha.parceiroId !== req.parceiro.id) {
+    return void res.status(403).json({ error: 'conversão não pertence a este parceiro' })
+  }
+
+  if (conversao.status === 'cancelada') {
+    return void res.status(409).json({ error: 'conversão já está cancelada' })
+  }
+
+  const agora = new Date()
+
+  const [conversaoAtualizada, rewardAtualizado] = await prisma.$transaction(async (tx) => {
+    const conv = await tx.conversao.update({
+      where: { id: conversao.id },
+      data: {
+        status: 'cancelada',
+        motivoCancelamento: motivo,
+        canceladoEm: agora,
+        canceladoPorId: req.parceiro.id,
+      },
+    })
+
+    let rew = conversao.reward
+    if (rew) {
+      rew = await tx.reward.update({
+        where: { id: rew.id },
+        data: {
+          status: 'revertido',
+          motivoReversao: motivo,
+          revertidoEm: agora,
+        },
+      })
+    }
+
+    return [conv, rew] as const
+  })
+
+  res.status(200).json({
+    conversaoId: conversaoAtualizada.id,
+    status: 'cancelada',
+    motivo,
+    rewardId: rewardAtualizado?.id ?? null,
+    rewardStatus: rewardAtualizado ? 'revertido' : null,
+  })
 })
