@@ -9,11 +9,13 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",
     "jose": "^6.0.11",
     "lucide-react": "^0.523.0",
     "nanoid": "^5.1.11",
     "next": "16.2.6",
+    "pg": "^8.22.0",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "resend": "^4.0.0"
