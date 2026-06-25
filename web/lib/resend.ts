@@ -9,6 +9,16 @@ function getResend(): Resend {
   return _resend
 }
 
+async function enviarEmail(para: string, assunto: string, html: string) {
+  if (process.env.NODE_ENV === 'test') return
+  await getResend().emails.send({
+    from: process.env.RESEND_FROM_EMAIL || 'noreply@geengoo.com.br',
+    to: para,
+    subject: assunto,
+    html,
+  })
+}
+
 export async function enviarCodigoLogin(para: string, codigo: string, _baseUrl: string) {
   if (process.env.NODE_ENV === 'test') return
 
@@ -24,4 +34,46 @@ export async function enviarCodigoLogin(para: string, codigo: string, _baseUrl: 
       </div>
     `,
   })
+}
+
+export async function notificarAfiliadoConfirmadoParceiro(email: string, valorCentavos: number) {
+  const valor = (valorCentavos / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+  await enviarEmail(
+    email,
+    `Saque de ${valor} confirmado — confira seu PIX`,
+    `<p>O parceiro confirmou o pagamento do seu saque de <strong>${valor}</strong>.</p>
+    <p>Verifique se o PIX chegou na sua conta.</p>`
+  )
+}
+
+export async function notificarAfiliadoPrevisaoPagamento(
+  email: string,
+  valorCentavos: number,
+  previsao: Date,
+  observacao?: string
+) {
+  const valor = (valorCentavos / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+  const dataPrevisao = previsao.toLocaleDateString('pt-BR')
+  await enviarEmail(
+    email,
+    `Seu saque de ${valor} está sendo processado`,
+    `<p>Seu saque de <strong>${valor}</strong> está em andamento.</p>
+    <p>Previsão de pagamento: <strong>${dataPrevisao}</strong></p>
+    ${observacao ? `<p>Observação do parceiro: ${observacao}</p>` : ''}`
+  )
+}
+
+export async function notificarSuperadminPrevisao(
+  email: string,
+  nomeAfiliado: string,
+  valorCentavos: number,
+  previsao: Date
+) {
+  const valor = (valorCentavos / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+  const dataPrevisao = previsao.toLocaleDateString('pt-BR')
+  await enviarEmail(
+    email,
+    `Parceiro informou previsão de pagamento para saque de ${valor}`,
+    `<p>Parceiro informou que pagará o saque de <strong>${nomeAfiliado}</strong> (${valor}) até <strong>${dataPrevisao}</strong>.</p>`
+  )
 }
