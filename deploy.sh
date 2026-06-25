@@ -10,8 +10,8 @@ npm ci
 npx prisma generate
 npm run build
 
-echo "--- api: prisma migrate ---"
-DATABASE_URL="postgresql://ping:ping_2026@187.77.56.138:5432/ping" npx prisma migrate deploy
+# migrations requerem superuser no VPS2 — aplicar manualmente via SSH quando houver nova migration
+# ssh root@187.77.56.138 "sudo -u postgres psql -d ping -f <migration.sql>"
 
 echo "--- web: install + prisma generate + build ---"
 cd "$ROOT/web"
