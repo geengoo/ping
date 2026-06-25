@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
   const jwt = await criarToken({ contaId: conta.id, email: conta.email, papeis: conta.papeis })
 
   const isSuperadmin = conta.papeis.includes('superadmin')
-  const redirectTo = isSuperadmin ? '/admin' : `/a/${await getCodigoAfiliado(conta.id)}`
+  const redirectTo = isSuperadmin ? '/admin/dashboard' : `/a/${await getCodigoAfiliado(conta.id)}`
 
   const res = NextResponse.redirect(new URL(redirectTo, req.url))
   res.cookies.set('ping_token', jwt, {
