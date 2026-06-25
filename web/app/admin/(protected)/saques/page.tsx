@@ -33,7 +33,7 @@ export default async function AdminSaquesPage() {
   async function confirmarPagamento(rewardId: string) {
     'use server'
     const s = await getSessao()
-    if (!s?.papeis.includes('superadmin')) return
+    if (!s?.papeis.includes('superadmin')) redirect('/admin/login')
 
     const base = process.env.API_BASE_URL
     if (!base) throw new Error('API_BASE_URL não configurado')

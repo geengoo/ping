@@ -11,11 +11,11 @@ export async function proxy(req: NextRequest) {
 
   if (isAfiliadoRoute || isAdminRoute) {
     const token = req.cookies.get('ping_token')?.value
-    if (!token) return NextResponse.redirect(new URL('/a/login', req.url))
+    if (!token) return NextResponse.redirect(new URL(isAdminRoute ? '/admin/login' : '/a/login', req.url))
     const sessao = await verificarToken(token)
-    if (!sessao) return NextResponse.redirect(new URL('/a/login', req.url))
+    if (!sessao) return NextResponse.redirect(new URL(isAdminRoute ? '/admin/login' : '/a/login', req.url))
     if (isAdminRoute && !sessao.papeis.includes('superadmin')) {
-      return NextResponse.redirect(new URL('/a/login', req.url))
+      return NextResponse.redirect(new URL('/admin/login', req.url))
     }
     return NextResponse.next()
   }

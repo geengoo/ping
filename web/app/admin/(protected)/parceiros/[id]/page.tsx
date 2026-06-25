@@ -27,7 +27,7 @@ export default async function ParceiroDetalhePage({
   async function salvar(formData: FormData) {
     'use server'
     const s = await getSessao()
-    if (!s?.papeis.includes('superadmin')) return
+    if (!s?.papeis.includes('superadmin')) redirect('/admin/login')
     await prisma.parceiro.update({
       where: { id },
       data: {
@@ -44,7 +44,7 @@ export default async function ParceiroDetalhePage({
   async function revogarApiKey() {
     'use server'
     const s = await getSessao()
-    if (!s?.papeis.includes('superadmin')) return
+    if (!s?.papeis.includes('superadmin')) redirect('/admin/login')
     const novaChave = nanoid(32)
     await prisma.parceiro.update({ where: { id }, data: { apiKey: novaChave } })
     redirect(`/admin/parceiros/${id}?apikey=${novaChave}`)

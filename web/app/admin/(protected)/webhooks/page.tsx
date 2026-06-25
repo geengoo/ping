@@ -16,7 +16,7 @@ export default async function AdminWebhooksPage() {
   async function reenviar(logId: string) {
     'use server'
     const s = await getSessao()
-    if (!s?.papeis.includes('superadmin')) return
+    if (!s?.papeis.includes('superadmin')) redirect('/admin/login')
     await prisma.webhookLog.update({
       where: { id: logId },
       data: { tentativas: 0, tentadoEm: null },
