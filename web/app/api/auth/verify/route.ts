@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
   const isSuperadmin = conta.papeis.includes('superadmin')
   const redirectTo = isSuperadmin ? '/admin/dashboard' : `/a/${await getCodigoAfiliado(conta.id)}`
 
-  const res = NextResponse.redirect(new URL(redirectTo, req.url))
+  const res = NextResponse.json({ redirectTo })
   res.cookies.set('ping_token', jwt, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',

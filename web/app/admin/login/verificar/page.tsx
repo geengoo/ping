@@ -26,8 +26,8 @@ function VerificarForm() {
       setLoading(false)
       return
     }
-    // redirect bem-sucedido — o fetch seguiu o 302 para /admin/dashboard
-    window.location.href = '/admin/dashboard'
+    const data = await res.json()
+    window.location.href = data.redirectTo || '/admin/dashboard'
   }
 
   return (

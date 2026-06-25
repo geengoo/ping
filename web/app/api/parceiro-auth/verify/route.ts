@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
     email: conta.email,
   })
 
-  const res = NextResponse.redirect(new URL('/parceiro/dashboard', req.url))
+  const res = NextResponse.json({ redirectTo: '/parceiro/dashboard' })
   res.cookies.set(COOKIE_NAME, jwt, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
