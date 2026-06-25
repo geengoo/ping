@@ -10,7 +10,7 @@ export default async function NovoParceiro() {
   async function criar(formData: FormData) {
     'use server'
     const sessaoAtual = await getSessao()
-    if (!sessaoAtual?.papeis.includes('superadmin')) return
+    if (!sessaoAtual?.papeis.includes('superadmin')) redirect('/admin/login')
 
     const email = formData.get('email') as string
     const nomeFantasia = formData.get('nomeFantasia') as string
@@ -30,6 +30,11 @@ export default async function NovoParceiro() {
 
     const existente = await prisma.parceiro.findUnique({ where: { contaId: conta.id } })
     if (existente) redirect(`/admin/parceiros/${existente.id}?erro=ja-existe`)
+
+    if (cnpj) {
+      const cnpjExistente = await prisma.parceiro.findUnique({ where: { cnpj } })
+      if (cnpjExistente) redirect(`/admin/parceiros/${cnpjExistente.id}?erro=cnpj-duplicado`)
+    }
 
     const apiKey = nanoid(32)
 
