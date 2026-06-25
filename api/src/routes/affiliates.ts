@@ -70,7 +70,7 @@ affiliatesRouter.get('/:id/balance', async (req, res) => {
   })
 
   const somar = (status: string) =>
-    rewards.filter((r) => r.status === status).reduce((acc, r) => acc + r.valorCentavos, 0)
+    rewards.filter((r) => r.status === status).reduce((acc: number, r) => acc + r.valorCentavos, 0)
 
   res.json({
     pendente: somar('pendente'),

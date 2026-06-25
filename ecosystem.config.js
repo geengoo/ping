@@ -7,7 +7,7 @@ module.exports = {
       cwd: '/root/Projetos/geengoo/ping/api',
       env: {
         NODE_ENV: 'production',
-        PORT: '3040',
+        PORT: '3042',
         DATABASE_URL: 'postgresql://ping:ping_2026@187.77.56.138:5432/ping',
         JWT_SECRET: 'ping_jwt_prod_6214d827508d02f29cbc3508f420c2d8',
         RESEND_API_KEY: '',
@@ -36,7 +36,7 @@ module.exports = {
       cwd: '/root/Projetos/geengoo/ping/web',
       env: {
         NODE_ENV: 'production',
-        PORT: '3041',
+        PORT: '3043',
         DATABASE_URL: 'postgresql://ping:ping_2026@187.77.56.138:5432/ping',
         JWT_SECRET: 'ping_jwt_prod_6214d827508d02f29cbc3508f420c2d8',
         SUPERADMIN_EMAIL: 'fabio@geengoo.com.br',
