@@ -105,4 +105,33 @@ describe('POST /v1/payouts/:id/confirm', () => {
 
     expect(res.status).toBe(409)
   })
+
+  it('retorna 404 se reward não existe', async () => {
+    const res = await request(app)
+      .post('/v1/payouts/id-que-nao-existe/confirm')
+      .set('X-API-Key', apiKey)
+      .send({})
+    expect(res.status).toBe(404)
+  })
+
+  it('retorna 403 se reward pertence a outro parceiro', async () => {
+    // cria outro parceiro
+    const outraConta = await prisma.conta.create({
+      data: { nome: 'Outro', email: 'outro-payout@ping.test', papeis: ['parceiro'] },
+    })
+    const outroParceiro = await prisma.parceiro.create({
+      data: { contaId: outraConta.id, nomeFantasia: 'Outro', apiKey: 'outro-payout-key' },
+    })
+
+    const res = await request(app)
+      .post(`/v1/payouts/${rewardId}/confirm`)
+      .set('X-API-Key', 'outro-payout-key')
+      .send({})
+
+    expect(res.status).toBe(403)
+
+    // cleanup
+    await prisma.parceiro.delete({ where: { id: outroParceiro.id } })
+    await prisma.conta.delete({ where: { id: outraConta.id } })
+  })
 })
