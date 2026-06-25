@@ -24,8 +24,10 @@ function VerificarForm() {
     if (!res.ok) {
       setErro('Código inválido ou expirado.')
       setLoading(false)
+      return
     }
-    // redirect handled server-side
+    // redirect bem-sucedido — o fetch seguiu o 302 para /admin/dashboard
+    window.location.href = '/admin/dashboard'
   }
 
   return (

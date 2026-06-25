@@ -6,7 +6,7 @@ export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl
 
   const isAfiliadoRoute = pathname.startsWith('/a/') && !pathname.startsWith('/a/login')
-  const isAdminRoute = pathname.startsWith('/admin')
+  const isAdminRoute = pathname.startsWith('/admin') && !pathname.startsWith('/admin/login')
   const isParceiroRoute = pathname.startsWith('/parceiro/') && !pathname.startsWith('/parceiro/login')
 
   if (isAfiliadoRoute || isAdminRoute) {
