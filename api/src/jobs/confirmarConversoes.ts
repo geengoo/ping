@@ -57,11 +57,15 @@ export async function confirmarConversoes() {
       }
     })
 
-    await notificarAfiliadoRewardDisponivel(
-      conversao.participacao.afiliado.email,
-      conversao.reward?.valorCentavos ?? 0,
-      process.env.WEB_BASE_URL ?? ''
-    )
+    try {
+      await notificarAfiliadoRewardDisponivel(
+        conversao.participacao.afiliado.email,
+        conversao.reward?.valorCentavos ?? 0,
+        process.env.WEB_BASE_URL ?? ''
+      )
+    } catch (err) {
+      console.error(`[confirmarConversoes] falha ao notificar afiliado reward ${conversao.reward?.id}:`, err)
+    }
 
     confirmadas++
   }
