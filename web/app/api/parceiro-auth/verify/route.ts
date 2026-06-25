@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
     include: { parceiro: true },
   })
 
-  if (!conta?.parceiro) {
+  if (!conta?.parceiro || conta.parceiro.status !== 'ativo') {
     return NextResponse.json({ error: 'conta não encontrada' }, { status: 401 })
   }
 
