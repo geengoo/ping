@@ -1,3 +1,4 @@
+import { redirect } from 'next/navigation'
 import { verificarPayoutToken } from '@/lib/payoutToken'
 import { prisma } from '@/lib/prisma'
 import { notificarAfiliadoPrevisaoPagamento, notificarSuperadminPrevisao } from '@/lib/resend'
@@ -41,19 +42,29 @@ export default async function DisputePage({ params }: Props) {
     const observacao = (formData.get('observacao') as string) || undefined
     if (!dataStr) return
 
+    // Fix 4: validar data
+    const previsao = new Date(dataStr)
+    if (isNaN(previsao.getTime())) return
+
     try {
       const payload = await verificarPayoutToken(token, 'dispute')
+
       const reward = await prisma.reward.findUnique({
         where: { id: payload.rewardId },
         include: { participacao: { include: { afiliado: true } } },
       })
-      if (!reward || reward.previsaoPagamentoEm) return
+      if (!reward) return
 
-      const previsao = new Date(dataStr)
-      await prisma.reward.update({
-        where: { id: payload.rewardId },
+      // Fix 2: update atômico — evita race condition
+      const result = await prisma.reward.updateMany({
+        where: { id: payload.rewardId, previsaoPagamentoEm: null },
         data: { previsaoPagamentoEm: previsao },
       })
+
+      if (result.count === 0) {
+        // já foi processado por outra requisição
+        redirect('/payout/dispute-ok?nome=' + encodeURIComponent(reward.participacao.afiliado.nome))
+      }
 
       await notificarAfiliadoPrevisaoPagamento(
         reward.participacao.afiliado.email,
@@ -71,8 +82,13 @@ export default async function DisputePage({ params }: Props) {
           previsao
         )
       }
-    } catch {
-      // token inválido — não faz nada
+
+      // Fix 1: redirecionar para página de sucesso
+      redirect('/payout/dispute-ok?nome=' + encodeURIComponent(reward.participacao.afiliado.nome))
+    } catch (err) {
+      // Fix 3: logging no catch
+      console.error('[dispute] erro:', err)
+      throw err
     }
   }
 

@@ -1,3 +1,4 @@
+import { redirect } from 'next/navigation'
 import { verificarPayoutToken } from '@/lib/payoutToken'
 import { prisma } from '@/lib/prisma'
 import { notificarAfiliadoConfirmadoParceiro } from '@/lib/resend'
@@ -41,21 +42,35 @@ export default async function ConfirmPage({ params }: Props) {
     'use server'
     try {
       const payload = await verificarPayoutToken(token, 'confirm')
+
       const reward = await prisma.reward.findUnique({
         where: { id: payload.rewardId },
         include: { participacao: { include: { afiliado: true } } },
       })
-      if (!reward || reward.status !== 'solicitado') return
-      await prisma.reward.update({
-        where: { id: payload.rewardId },
+      if (!reward) return
+
+      // Fix 2: update atômico — evita race condition
+      const result = await prisma.reward.updateMany({
+        where: { id: payload.rewardId, status: 'solicitado' },
         data: { status: 'pago', pagoEm: new Date() },
       })
+
+      if (result.count === 0) {
+        // já foi processado por outra requisição
+        redirect('/payout/confirm-ok?nome=' + encodeURIComponent(reward.participacao.afiliado.nome))
+      }
+
       await notificarAfiliadoConfirmadoParceiro(
         reward.participacao.afiliado.email,
         reward.valorCentavos
       )
-    } catch {
-      // token inválido — não faz nada
+
+      // Fix 1: redirecionar para página de sucesso
+      redirect('/payout/confirm-ok?nome=' + encodeURIComponent(reward.participacao.afiliado.nome))
+    } catch (err) {
+      // Fix 3: logging no catch
+      console.error('[confirm] erro:', err)
+      throw err
     }
   }
 
