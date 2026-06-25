@@ -1,9 +1,25 @@
 import 'dotenv/config'
-import { prisma } from './lib/prisma'
+import { confirmarConversoes } from './jobs/confirmarConversoes'
+import { dispararWebhooks } from './jobs/dispararWebhooks'
+import { alertarSaques } from './jobs/alertarSaques'
 
 async function tick() {
   console.log('[worker] tick —', new Date().toISOString())
-  // Jobs implementados na Parte 2
+  try {
+    await confirmarConversoes()
+  } catch (err) {
+    console.error('[worker] confirmarConversoes erro:', err)
+  }
+  try {
+    await dispararWebhooks()
+  } catch (err) {
+    console.error('[worker] dispararWebhooks erro:', err)
+  }
+  try {
+    await alertarSaques()
+  } catch (err) {
+    console.error('[worker] alertarSaques erro:', err)
+  }
 }
 
 async function main() {
