@@ -162,6 +162,9 @@ model Reward {
   solicitadoEm DateTime? @map("solicitado_em")
   pagoEm       DateTime? @map("pago_em")
   revertidoEm  DateTime? @map("revertido_em")
+  alertaD3EnviadoEm   DateTime? @map("alerta_d3_enviado_em")
+  alertaD5EnviadoEm   DateTime? @map("alerta_d5_enviado_em")
+  previsaoPagamentoEm DateTime? @map("previsao_pagamento_em")
 
   conversao    Conversao    @relation(fields: [conversaoId], references: [id])
   participacao Participacao @relation(fields: [participacaoId], references: [id])
