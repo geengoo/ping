@@ -23,7 +23,7 @@ export default async function AdminSaquesPage() {
         include: {
           afiliado: { select: { nome: true } },
           campanha: {
-            include: { parceiro: { select: { id: true, nomeFantasia: true, razaoSocial: true, apiKey: true } } },
+            include: { parceiro: { select: { id: true, nomeFantasia: true, razaoSocial: true } } },
           },
         },
       },
@@ -35,16 +35,20 @@ export default async function AdminSaquesPage() {
     const s = await getSessao()
     if (!s?.papeis.includes('superadmin')) return
 
+    const base = process.env.API_BASE_URL
+    if (!base) throw new Error('API_BASE_URL não configurado')
+
     const reward = await prisma.reward.findUnique({
       where: { id: rewardId, status: 'solicitado' },
       include: { participacao: { include: { campanha: { include: { parceiro: { select: { apiKey: true } } } } } } },
     })
     if (!reward) return
 
-    await fetch(`${process.env.API_BASE_URL}/v1/payouts/${rewardId}/confirm`, {
+    const res = await fetch(`${base}/v1/payouts/${rewardId}/confirm`, {
       method: 'POST',
       headers: { 'X-API-Key': reward.participacao.campanha.parceiro.apiKey },
     })
+    if (!res.ok) throw new Error(`payout confirm failed: ${res.status}`)
 
     revalidatePath('/admin/saques')
   }
@@ -77,7 +81,7 @@ export default async function AdminSaquesPage() {
                   <td className="px-6 py-3 text-gray-500 font-mono text-xs">{r.participacao.chavePix || '—'}</td>
                   <td className="px-6 py-3 text-right text-gray-700 font-medium">{fmt(r.valorCentavos)}</td>
                   <td className={`px-6 py-3 text-sm ${atrasado ? 'text-red-600 font-medium' : 'text-gray-500'}`}>
-                    {dias === 0 ? 'hoje' : `${dias} dia${dias > 1 ? 's' : ''}`}{atrasado && ' ⚠️'}
+                    {dias === 0 ? 'hoje' : `${dias} dia${dias > 1 ? 's' : ''}`}
                   </td>
                   <td className="px-6 py-3">
                     <form action={confirmarPagamento.bind(null, r.id)}>
