@@ -55,6 +55,16 @@ affiliatesRouter.post('/', async (req, res) => {
 affiliatesRouter.get('/:id/balance', async (req, res) => {
   const { id } = req.params
 
+  const participacao = await prisma.participacao.findUnique({
+    where: { id },
+    include: { campanha: true },
+  })
+
+  if (!participacao) return void res.status(404).json({ error: 'participação não encontrada' })
+  if (participacao.campanha.parceiroId !== req.parceiro.id) {
+    return void res.status(403).json({ error: 'participação não pertence a este parceiro' })
+  }
+
   const rewards = await prisma.reward.findMany({
     where: { participacaoId: id },
   })

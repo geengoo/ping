@@ -105,6 +105,29 @@ describe('GET /v1/affiliates/:id/balance', () => {
     expect(res.body).toEqual({ pendente: 0, disponivel: 0, solicitado: 0, pago: 0 })
   })
 
+  it('retorna 403 se participação pertence a outro parceiro', async () => {
+    const outraConta = await prisma.conta.create({
+      data: { nome: 'Outro', email: 'outro-aff@ping.test', papeis: ['parceiro'] },
+    })
+    const outroParceiro = await prisma.parceiro.create({
+      data: { contaId: outraConta.id, nomeFantasia: 'Outro', apiKey: 'outro-aff-key' },
+    })
+
+    const criacaoRes = await request(app)
+      .post('/v1/affiliates')
+      .set('X-API-Key', apiKey)
+      .send({ email: 'afiliado-403@aff-test.com', nome: 'Afiliado 403', chavePix: 'afiliado403@pix.com' })
+
+    const res = await request(app)
+      .get(`/v1/affiliates/${criacaoRes.body.participacaoId}/balance`)
+      .set('X-API-Key', 'outro-aff-key')
+
+    expect(res.status).toBe(403)
+
+    await prisma.parceiro.delete({ where: { id: outroParceiro.id } })
+    await prisma.conta.delete({ where: { id: outraConta.id } })
+  })
+
   it('soma rewards disponivel corretamente em centavos', async () => {
     const criacaoRes = await request(app)
       .post('/v1/affiliates')
