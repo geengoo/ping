@@ -39,6 +39,15 @@ export default async function SaquesPage() {
     })
     if (!parceiro) return
 
+    // Verificar que o reward pertence a este parceiro
+    const reward = await prisma.reward.findFirst({
+      where: {
+        id: rewardId,
+        participacao: { campanha: { parceiroId: sessaoAtual.parceiroId } },
+      },
+    })
+    if (!reward) return
+
     await fetch(`${process.env.API_BASE_URL}/v1/payouts/${rewardId}/confirm`, {
       method: 'POST',
       headers: { 'X-API-Key': parceiro.apiKey },
