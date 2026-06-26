@@ -7,7 +7,12 @@ function mascaraApiKey(key: string) {
   return '••••••••' + key.slice(-4)
 }
 
-export default async function ParceirosPage() {
+export default async function ParceirosPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ convite?: string }>
+}) {
+  const { convite } = await searchParams
   const sessao = await getSessao()
   if (!sessao || !sessao.papeis.includes('superadmin')) redirect('/admin/login')
 
@@ -20,10 +25,15 @@ export default async function ParceirosPage() {
 
   return (
     <div className="space-y-6">
+      {convite === 'enviado' && (
+        <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-3 text-sm text-green-700 font-medium">
+          Convite enviado com sucesso.
+        </div>
+      )}
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-display font-bold text-gray-900">Parceiros</h1>
-        <Link href="/admin/parceiros/novo" className="px-4 py-2 bg-[#374151] text-white text-sm font-medium rounded-lg hover:bg-gray-700 transition-colors">
-          Novo parceiro
+        <Link href="/admin/parceiros/convidar" className="px-4 py-2 bg-[#374151] text-white text-sm font-medium rounded-lg hover:bg-gray-700 transition-colors">
+          + Convidar parceiro
         </Link>
       </div>
 
