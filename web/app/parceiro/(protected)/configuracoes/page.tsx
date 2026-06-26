@@ -3,9 +3,6 @@ import { prisma } from '@/lib/prisma'
 import { redirect } from 'next/navigation'
 import { CopyButton } from '@/components/parceiro/CopyButton'
 
-function fmt(centavos: number) {
-  return (centavos / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
-}
 
 export default async function ConfiguracoesPage() {
   const sessao = await getSessaoParceiro()
@@ -13,12 +10,10 @@ export default async function ConfiguracoesPage() {
 
   const parceiro = await prisma.parceiro.findUnique({
     where: { id: sessao.parceiroId },
-    include: { campanhas: { where: { status: 'ativa' }, take: 1 } },
+    select: { apiKey: true, webhookUrl: true },
   })
 
   if (!parceiro) redirect('/parceiro/login')
-
-  const campanha = parceiro.campanhas[0]
 
   return (
     <div className="space-y-6 max-w-2xl">
@@ -46,29 +41,6 @@ export default async function ConfiguracoesPage() {
           </div>
         </div>
       </div>
-
-      {campanha && (
-        <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-100">
-            <h2 className="text-sm font-semibold text-gray-700">Campanha ativa — {campanha.nome}</h2>
-          </div>
-          <dl className="divide-y divide-gray-100">
-            {[
-              ['Status', campanha.status],
-              ['Janela de cancelamento', `${campanha.janelaCancelamentoDias} dias`],
-              ['Tipo de recompensa', campanha.recompensaTipo],
-              ['Valor da recompensa', fmt(campanha.recompensaValorCentavos)],
-              ['Dia de pagamento', `Dia ${campanha.diaPagamento}`],
-              ['Atribuição', campanha.atribuicao],
-            ].map(([k, v]) => (
-              <div key={k} className="px-6 py-3 flex gap-4">
-                <dt className="text-xs text-gray-400 w-44 shrink-0 pt-0.5">{k}</dt>
-                <dd className="text-sm text-gray-700">{v}</dd>
-              </div>
-            ))}
-          </dl>
-        </div>
-      )}
     </div>
   )
 }

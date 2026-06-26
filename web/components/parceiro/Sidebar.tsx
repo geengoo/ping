@@ -1,10 +1,11 @@
 'use client'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { LayoutDashboard, ArrowLeftRight, Wallet, Users, Webhook, Settings, LogOut } from 'lucide-react'
+import { LayoutDashboard, ArrowLeftRight, Wallet, Users, Webhook, Settings, LogOut, Megaphone } from 'lucide-react'
 
 const NAV = [
   { label: 'Dashboard',     href: '/parceiro/dashboard',      icon: <LayoutDashboard size={16} /> },
+  { label: 'Campanha',      href: '/parceiro/campanha',       icon: <Megaphone size={16} /> },
   { label: 'Conversões',    href: '/parceiro/conversoes',     icon: <ArrowLeftRight size={16} /> },
   { label: 'Saques',        href: '/parceiro/saques',         icon: <Wallet size={16} /> },
   { label: 'Afiliados',     href: '/parceiro/afiliados',      icon: <Users size={16} /> },
