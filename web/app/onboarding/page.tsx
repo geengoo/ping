@@ -44,6 +44,7 @@ function OnboardingWizard() {
         setNomeFantasia(data.nomeFantasia)
         setContatoNome(data.nomeContato)
       })
+      .catch(() => setTokenInvalido(true))
   }, [token])
 
   async function buscarCnpj(valor: string) {
@@ -276,7 +277,7 @@ function OnboardingWizard() {
 
 export default function OnboardingPage() {
   return (
-    <Suspense>
+    <Suspense fallback={<main className="min-h-screen bg-[#f8f9fa]" />}>
       <OnboardingWizard />
     </Suspense>
   )
