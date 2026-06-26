@@ -88,7 +88,7 @@ function OnboardingWizard() {
           webhookUrl: webhookUrl || undefined,
           nomeCampanha,
           recompensaTipo,
-          recompensaValorCentavos: Math.round(parseFloat(recompensaValor.replace(',', '.')) * 100),
+          recompensaValorCentavos: Math.round(parseFloat(recompensaValor.replace(/\./g, '').replace(',', '.')) * 100),
           janelaCancelamentoDias: parseInt(janelaCancelamentoDias),
           diaPagamento: parseInt(diaPagamento),
         }),

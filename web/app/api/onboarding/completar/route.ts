@@ -25,8 +25,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ erro: 'Campos obrigatórios faltando' }, { status: 400 })
   }
 
-  if (!nomeCampanha || !recompensaTipo || recompensaValorCentavos == null) {
+  if (!nomeCampanha || !recompensaTipo || recompensaValorCentavos == null || recompensaValorCentavos <= 0) {
     return NextResponse.json({ erro: 'Dados da campanha obrigatórios' }, { status: 400 })
+  }
+
+  if (!['pix', 'credito'].includes(recompensaTipo)) {
+    return NextResponse.json({ erro: 'Tipo de recompensa inválido' }, { status: 400 })
   }
 
   if (webhookUrl && !String(webhookUrl).startsWith('https://')) {
