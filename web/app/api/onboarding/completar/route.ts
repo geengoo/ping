@@ -11,13 +11,26 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ erro: 'Body inválido' }, { status: 400 })
   }
 
-  const { token, cnpj, nomeFantasia, razaoSocial, contatoNome, contatoCargo, contatoTelefone, webhookUrl } = body as {
+  const {
+    token, cnpj, nomeFantasia, razaoSocial, contatoNome, contatoCargo, contatoTelefone, webhookUrl,
+    nomeCampanha, recompensaTipo, recompensaValorCentavos, janelaCancelamentoDias, diaPagamento,
+  } = body as {
     token?: string; cnpj?: string; nomeFantasia?: string; razaoSocial?: string
     contatoNome?: string; contatoCargo?: string; contatoTelefone?: string; webhookUrl?: string
+    nomeCampanha?: string; recompensaTipo?: string; recompensaValorCentavos?: number
+    janelaCancelamentoDias?: number; diaPagamento?: number
   }
 
   if (!token || !nomeFantasia || !contatoNome) {
     return NextResponse.json({ erro: 'Campos obrigatórios faltando' }, { status: 400 })
+  }
+
+  if (!nomeCampanha || !recompensaTipo || recompensaValorCentavos == null) {
+    return NextResponse.json({ erro: 'Dados da campanha obrigatórios' }, { status: 400 })
+  }
+
+  if (webhookUrl && !String(webhookUrl).startsWith('https://')) {
+    return NextResponse.json({ erro: 'Webhook URL deve usar HTTPS' }, { status: 400 })
   }
 
   try {
@@ -43,7 +56,7 @@ export async function POST(req: NextRequest) {
       if (parceiroExistente) throw new Error('PARCEIRO_EXISTENTE')
 
       const apiKey = nanoid(32)
-      await tx.parceiro.create({
+      const parceiro = await tx.parceiro.create({
         data: {
           contaId: conta.id,
           nomeFantasia,
@@ -54,6 +67,18 @@ export async function POST(req: NextRequest) {
           contatoTelefone: contatoTelefone || null,
           webhookUrl: webhookUrl || null,
           apiKey,
+        },
+      })
+
+      await tx.campanha.create({
+        data: {
+          parceiroId: parceiro.id,
+          nome: nomeCampanha as string,
+          recompensaTipo: recompensaTipo as string,
+          recompensaValorCentavos: recompensaValorCentavos as number,
+          janelaCancelamentoDias: (janelaCancelamentoDias as number) ?? 30,
+          diaPagamento: (diaPagamento as number) ?? 5,
+          tiposCompraElegiveis: [],
         },
       })
 

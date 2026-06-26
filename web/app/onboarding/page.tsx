@@ -34,6 +34,13 @@ function OnboardingWizard() {
   // Etapa 3 — técnico
   const [webhookUrl, setWebhookUrl] = useState('')
 
+  // Etapa 4 — campanha
+  const [nomeCampanha, setNomeCampanha] = useState('')
+  const [recompensaTipo, setRecompensaTipo] = useState<'pix' | 'credito'>('pix')
+  const [recompensaValor, setRecompensaValor] = useState('')
+  const [janelaCancelamentoDias, setJanelaCancelamentoDias] = useState('30')
+  const [diaPagamento, setDiaPagamento] = useState('5')
+
   useEffect(() => {
     if (!token) { setTokenInvalido(true); return }
     fetch(`/api/onboarding/verificar?token=${token}`)
@@ -79,6 +86,11 @@ function OnboardingWizard() {
           contatoCargo: contatoCargo || undefined,
           contatoTelefone: contatoTelefone || undefined,
           webhookUrl: webhookUrl || undefined,
+          nomeCampanha,
+          recompensaTipo,
+          recompensaValorCentavos: Math.round(parseFloat(recompensaValor.replace(',', '.')) * 100),
+          janelaCancelamentoDias: parseInt(janelaCancelamentoDias),
+          diaPagamento: parseInt(diaPagamento),
         }),
       })
       if (!res.ok) {
@@ -111,7 +123,7 @@ function OnboardingWizard() {
     )
   }
 
-  const totalEtapas = 3
+  const totalEtapas = 4
 
   return (
     <main className="min-h-screen bg-[#f8f9fa] flex flex-col items-center justify-center p-4">
@@ -247,7 +259,6 @@ function OnboardingWizard() {
                   <p className="text-xs text-gray-400 mt-1">Notificações de novas conversões e saques confirmados.</p>
                 </div>
               </div>
-              {erro && <p className="text-red-500 text-sm">{erro}</p>}
               <div className="flex gap-3">
                 <button
                   onClick={() => setEtapa(2)}
@@ -256,8 +267,89 @@ function OnboardingWizard() {
                   Voltar
                 </button>
                 <button
+                  onClick={() => setEtapa(4)}
+                  className="flex-1 bg-[#374151] text-white rounded-lg py-3 text-sm font-medium hover:bg-gray-700 transition-colors"
+                >
+                  Continuar
+                </button>
+              </div>
+            </>
+          )}
+
+          {etapa === 4 && (
+            <>
+              <div>
+                <p className="text-xs text-gray-400 font-medium uppercase tracking-wide mb-1">Etapa 4 de {totalEtapas}</p>
+                <h1 className="text-xl font-bold text-gray-900">Campanha de indicações</h1>
+              </div>
+              <div className="space-y-4">
+                <div>
+                  <label className="text-xs text-gray-500 font-medium block mb-1">Nome da campanha *</label>
+                  <input
+                    required
+                    value={nomeCampanha}
+                    onChange={e => setNomeCampanha(e.target.value)}
+                    placeholder="Programa de Indicações"
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#374151]"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-gray-500 font-medium block mb-1">Tipo de recompensa *</label>
+                  <select
+                    required
+                    value={recompensaTipo}
+                    onChange={e => setRecompensaTipo(e.target.value as 'pix' | 'credito')}
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#374151] bg-white"
+                  >
+                    <option value="pix">PIX</option>
+                    <option value="credito">Crédito em conta</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs text-gray-500 font-medium block mb-1">Valor da recompensa (R$) *</label>
+                  <input
+                    required
+                    type="text"
+                    inputMode="decimal"
+                    value={recompensaValor}
+                    onChange={e => setRecompensaValor(e.target.value)}
+                    placeholder="50,00"
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#374151]"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-gray-500 font-medium block mb-1">Janela de cancelamento (dias)</label>
+                  <input
+                    type="number"
+                    min={1}
+                    value={janelaCancelamentoDias}
+                    onChange={e => setJanelaCancelamentoDias(e.target.value)}
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#374151]"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-gray-500 font-medium block mb-1">Dia de pagamento (1–28)</label>
+                  <input
+                    type="number"
+                    min={1}
+                    max={28}
+                    value={diaPagamento}
+                    onChange={e => setDiaPagamento(e.target.value)}
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#374151]"
+                  />
+                </div>
+              </div>
+              {erro && <p className="text-red-500 text-sm">{erro}</p>}
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setEtapa(3)}
+                  className="flex-1 border border-gray-200 text-gray-600 rounded-lg py-3 text-sm hover:bg-gray-50 transition-colors"
+                >
+                  Voltar
+                </button>
+                <button
                   onClick={handleSubmit}
-                  disabled={enviando}
+                  disabled={enviando || !nomeCampanha || !recompensaValor}
                   className="flex-1 bg-[#374151] text-white rounded-lg py-3 text-sm font-medium hover:bg-gray-700 transition-colors disabled:opacity-40"
                 >
                   {enviando ? 'Criando conta...' : 'Concluir cadastro'}

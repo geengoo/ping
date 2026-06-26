@@ -4,9 +4,11 @@ import { enviarConviteParceiro } from '@/lib/resend'
 import { redirect } from 'next/navigation'
 import { nanoid } from 'nanoid'
 
-export default async function ConvidarParceiro() {
+export default async function ConvidarParceiro({ searchParams }: { searchParams: Promise<{ convite?: string; erro?: string }> }) {
   const sessao = await getSessao()
   if (!sessao || !sessao.papeis.includes('superadmin')) redirect('/admin/login')
+
+  const { erro } = await searchParams
 
   async function convidar(formData: FormData) {
     'use server'
@@ -18,6 +20,11 @@ export default async function ConvidarParceiro() {
     const nomeFantasia = formData.get('nomeFantasia') as string
 
     if (!email || !nomeContato || !nomeFantasia) return
+
+    const conviteAtivo = await prisma.conviteParceiro.findFirst({
+      where: { email, usado: false, expiraEm: { gt: new Date() } },
+    })
+    if (conviteAtivo) redirect('/admin/parceiros/convidar?erro=convite-ativo')
 
     const token = nanoid(32)
     const expiraEm = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
@@ -43,6 +50,11 @@ export default async function ConvidarParceiro() {
           O convidado receberá um email com link para completar o cadastro.
         </p>
       </div>
+      {erro === 'convite-ativo' && (
+        <div className="mb-4 bg-yellow-50 border border-yellow-200 rounded-xl px-4 py-3 text-sm text-yellow-700 font-medium">
+          Já existe um convite ativo para este email. Aguarde a expiração ou peça ao parceiro para verificar o email.
+        </div>
+      )}
       <form action={convidar} className="bg-white border border-gray-200 rounded-xl shadow-sm p-6 space-y-4">
         <div>
           <label className="text-xs text-gray-500 font-medium block mb-1">Nome do contato *</label>
