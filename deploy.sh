@@ -21,6 +21,8 @@ npm run build
 
 echo "--- pm2 reload ---"
 cd "$ROOT"
-pm2 reload ping-api ping-web ping-worker 2>/dev/null || pm2 start ecosystem.config.js
+pm2 reload ping-api 2>/dev/null || pm2 start ecosystem.config.js --only ping-api
+pm2 reload ping-web 2>/dev/null || pm2 start ecosystem.config.js --only ping-web
+pm2 reload ping-worker 2>/dev/null || pm2 start ecosystem.config.js --only ping-worker
 
 echo "=== deploy concluído ==="
