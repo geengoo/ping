@@ -77,3 +77,38 @@ export async function notificarSuperadminPrevisao(
     `<p>Parceiro informou que pagará o saque de <strong>${nomeAfiliado}</strong> (${valor}) até <strong>${dataPrevisao}</strong>.</p>`
   )
 }
+
+export async function enviarConviteParceiro({
+  para,
+  nomeContato,
+  nomeFantasia,
+  token,
+}: {
+  para: string
+  nomeContato: string
+  nomeFantasia: string
+  token: string
+}) {
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://ping.geengoo.io'
+  const link = `${baseUrl}/onboarding?token=${token}`
+  await enviarEmail(
+    para,
+    `${nomeContato}, você foi convidado para o ping`,
+    `
+      <div style="font-family:sans-serif;max-width:520px;margin:0 auto;padding:40px 32px">
+        <p style="font-size:18px;font-weight:700;color:#111;margin-bottom:8px">Olá, ${nomeContato}</p>
+        <p style="color:#555;margin-bottom:24px">
+          Você foi convidado para configurar o programa de indicações da <strong>${nomeFantasia}</strong> no ping.
+        </p>
+        <a href="${link}"
+           style="display:inline-block;background:#374151;color:#fff;text-decoration:none;
+                  padding:12px 28px;border-radius:8px;font-weight:600;font-size:15px">
+          Completar cadastro
+        </a>
+        <p style="color:#999;font-size:12px;margin-top:32px">
+          Este link expira em 7 dias. Se você não esperava este convite, ignore este email.
+        </p>
+      </div>
+    `,
+  )
+}
