@@ -1,12 +1,14 @@
 'use client'
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 
-export default function ParceiroLoginPage() {
+function ParceiroLoginForm() {
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
   const [erro, setErro] = useState('')
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const onboardingOk = searchParams.get('onboarding') === 'ok'
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -29,7 +31,12 @@ export default function ParceiroLoginPage() {
     <main className="min-h-screen flex items-center justify-center bg-[#f8f9fa] p-4">
       <div className="w-full max-w-sm">
         <h1 className="text-2xl font-bold mb-2">Acessar painel</h1>
-        <p className="text-gray-500 mb-8 text-sm">Você receberá um código de 6 dígitos por email.</p>
+        <p className="text-gray-500 mb-6 text-sm">Você receberá um código de 6 dígitos por email.</p>
+        {onboardingOk && (
+          <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-3 text-sm text-green-700 font-medium mb-6">
+            Cadastro concluído! Informe seu email para acessar o painel.
+          </div>
+        )}
         <form onSubmit={handleSubmit} className="space-y-4">
           <input
             type="email"
@@ -50,5 +57,13 @@ export default function ParceiroLoginPage() {
         </form>
       </div>
     </main>
+  )
+}
+
+export default function ParceiroLoginPage() {
+  return (
+    <Suspense>
+      <ParceiroLoginForm />
+    </Suspense>
   )
 }
