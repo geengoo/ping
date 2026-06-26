@@ -2,17 +2,13 @@ import { getSessao } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import { ConvidarModal } from './ConvidarModal'
 
 function mascaraApiKey(key: string) {
   return '••••••••' + key.slice(-4)
 }
 
-export default async function ParceirosPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ convite?: string }>
-}) {
-  const { convite } = await searchParams
+export default async function ParceirosPage() {
   const sessao = await getSessao()
   if (!sessao || !sessao.papeis.includes('superadmin')) redirect('/admin/login')
 
@@ -25,16 +21,9 @@ export default async function ParceirosPage({
 
   return (
     <div className="space-y-6">
-      {convite === 'enviado' && (
-        <div className="mb-4 bg-green-50 border border-green-200 rounded-xl px-4 py-3 text-sm text-green-700 font-medium">
-          Convite enviado com sucesso.
-        </div>
-      )}
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-display font-bold text-gray-900">Parceiros</h1>
-        <Link href="/admin/parceiros/convidar" className="px-4 py-2 bg-[#374151] text-white text-sm font-medium rounded-lg hover:bg-gray-700 transition-colors">
-          + Convidar parceiro
-        </Link>
+        <ConvidarModal />
       </div>
 
       <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
