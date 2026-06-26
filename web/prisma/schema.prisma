@@ -57,6 +57,7 @@ model Parceiro {
   termosIpAceite String?   @map("termos_ip_aceite")
   termosHashDoc  String?   @map("termos_hash_doc")
 
+  slug             String?   @unique
   plano            String?   @default("basico")
   inicioAssinatura DateTime? @map("inicio_assinatura")
   webhookUrl       String?   @map("webhook_url")
@@ -85,6 +86,7 @@ model Campanha {
   janelaCancelamentoDias Int      @default(30) @map("janela_cancelamento_dias")
   atribuicao             String   @default("last-touch")
 
+  descricao               String?
   recompensaTipo          String @map("recompensa_tipo")
   recompensaValorCentavos Int    @map("recompensa_valor_centavos")
   recompensaFrequencia    String @default("recorrente") @map("recompensa_frequencia")

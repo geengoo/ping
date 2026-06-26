@@ -7,6 +7,7 @@ interface CampanhaFormProps {
   campanha: {
     id: string
     nome: string
+    descricao: string | null
     recompensaTipo: string
     recompensaValorCentavos: number
     recompensaFrequencia: string
@@ -28,6 +29,7 @@ function reaisParaCentavos(valor: string) {
 export function CampanhaForm({ campanha }: CampanhaFormProps) {
   const router = useRouter()
   const [nome, setNome] = useState(campanha.nome)
+  const [descricao, setDescricao] = useState(campanha.descricao || '')
   const [recompensaTipo, setRecompensaTipo] = useState(campanha.recompensaTipo)
   const [recompensaFrequencia, setRecompensaFrequencia] = useState(campanha.recompensaFrequencia)
   const [recompensaValor, setRecompensaValor] = useState(centavosParaReais(campanha.recompensaValorCentavos))
@@ -57,6 +59,7 @@ export function CampanhaForm({ campanha }: CampanhaFormProps) {
         body: JSON.stringify({
           campanhaId: campanha.id,
           nome,
+          descricao: descricao || null,
           recompensaTipo,
           recompensaFrequencia,
           recompensaValorCentavos,
@@ -91,6 +94,18 @@ export function CampanhaForm({ campanha }: CampanhaFormProps) {
               onChange={e => setNome(e.target.value)}
               className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#374151]"
             />
+          </div>
+
+          <div>
+            <label className="text-xs text-gray-500 font-medium block mb-1">Texto da página pública</label>
+            <textarea
+              value={descricao}
+              onChange={e => setDescricao(e.target.value)}
+              rows={3}
+              placeholder={`Ex: Indique amigos para ${campanha.nome} e ganhe por cada assinatura confirmada.`}
+              className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#374151] resize-none"
+            />
+            <p className="text-xs text-gray-400 mt-1">Aparece na página onde seus clientes se cadastram como afiliados.</p>
           </div>
 
           <div>

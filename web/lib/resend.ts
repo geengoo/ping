@@ -9,7 +9,7 @@ function getResend(): Resend {
   return _resend
 }
 
-async function enviarEmail(para: string, assunto: string, html: string) {
+export async function enviarEmail(para: string, assunto: string, html: string) {
   if (process.env.NODE_ENV === 'test') return
   await getResend().emails.send({
     from: process.env.RESEND_FROM_EMAIL || 'noreply@geengoo.com.br',

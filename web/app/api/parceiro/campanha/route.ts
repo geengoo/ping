@@ -13,9 +13,10 @@ export async function PUT(req: NextRequest) {
     return NextResponse.json({ erro: 'Body inválido' }, { status: 400 })
   }
 
-  const { campanhaId, nome, recompensaTipo, recompensaFrequencia, recompensaValorCentavos, janelaCancelamentoDias, diaPagamento } = body as {
+  const { campanhaId, nome, descricao, recompensaTipo, recompensaFrequencia, recompensaValorCentavos, janelaCancelamentoDias, diaPagamento } = body as {
     campanhaId?: string
     nome?: string
+    descricao?: string | null
     recompensaTipo?: string
     recompensaFrequencia?: string
     recompensaValorCentavos?: number
@@ -48,6 +49,7 @@ export async function PUT(req: NextRequest) {
     where: { id: campanhaId },
     data: {
       nome,
+      descricao: descricao ?? campanha.descricao,
       recompensaTipo,
       recompensaFrequencia: recompensaFrequencia ?? campanha.recompensaFrequencia,
       recompensaValorCentavos,

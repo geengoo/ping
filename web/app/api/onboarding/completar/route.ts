@@ -60,6 +60,18 @@ export async function POST(req: NextRequest) {
       if (parceiroExistente) throw new Error('PARCEIRO_EXISTENTE')
 
       const apiKey = nanoid(32)
+      const slugBase = (nomeFantasia as string)
+        .toLowerCase()
+        .normalize('NFD').replace(/[̀-ͯ]/g, '')
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-|-$/g, '')
+      let slug = slugBase
+      let tentativa = 0
+      while (await tx.parceiro.findUnique({ where: { slug } })) {
+        tentativa++
+        slug = `${slugBase}-${tentativa}`
+      }
+
       const parceiro = await tx.parceiro.create({
         data: {
           contaId: conta.id,
@@ -71,6 +83,7 @@ export async function POST(req: NextRequest) {
           contatoTelefone: contatoTelefone || null,
           webhookUrl: webhookUrl || null,
           apiKey,
+          slug,
         },
       })
 
