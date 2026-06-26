@@ -9,6 +9,7 @@ interface CampanhaFormProps {
     nome: string
     recompensaTipo: string
     recompensaValorCentavos: number
+    recompensaFrequencia: string
     janelaCancelamentoDias: number
     diaPagamento: number
     status: string
@@ -28,6 +29,7 @@ export function CampanhaForm({ campanha }: CampanhaFormProps) {
   const router = useRouter()
   const [nome, setNome] = useState(campanha.nome)
   const [recompensaTipo, setRecompensaTipo] = useState(campanha.recompensaTipo)
+  const [recompensaFrequencia, setRecompensaFrequencia] = useState(campanha.recompensaFrequencia)
   const [recompensaValor, setRecompensaValor] = useState(centavosParaReais(campanha.recompensaValorCentavos))
   const [janelaDias, setJanelaDias] = useState(String(campanha.janelaCancelamentoDias))
   const [diaPagamento, setDiaPagamento] = useState(String(campanha.diaPagamento))
@@ -56,6 +58,7 @@ export function CampanhaForm({ campanha }: CampanhaFormProps) {
           campanhaId: campanha.id,
           nome,
           recompensaTipo,
+          recompensaFrequencia,
           recompensaValorCentavos,
           janelaCancelamentoDias: parseInt(janelaDias) || 30,
           diaPagamento: parseInt(diaPagamento) || 5,
@@ -99,6 +102,18 @@ export function CampanhaForm({ campanha }: CampanhaFormProps) {
             >
               <option value="pix">PIX</option>
               <option value="credito">Crédito</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="text-xs text-gray-500 font-medium block mb-1">Frequência do prêmio *</label>
+            <select
+              value={recompensaFrequencia}
+              onChange={e => setRecompensaFrequencia(e.target.value)}
+              className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#374151] bg-white"
+            >
+              <option value="recorrente">Recorrente — toda conversão gera recompensa</option>
+              <option value="unico">Único — apenas a primeira conversão gera recompensa</option>
             </select>
           </div>
 

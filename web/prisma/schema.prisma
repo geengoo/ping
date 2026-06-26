@@ -87,6 +87,7 @@ model Campanha {
 
   recompensaTipo          String @map("recompensa_tipo")
   recompensaValorCentavos Int    @map("recompensa_valor_centavos")
+  recompensaFrequencia    String @default("recorrente") @map("recompensa_frequencia")
   diaPagamento            Int    @default(5) @map("dia_pagamento")
 
   criadoEm DateTime @default(now()) @map("criado_em")

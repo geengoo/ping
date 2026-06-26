@@ -13,10 +13,11 @@ export async function PUT(req: NextRequest) {
     return NextResponse.json({ erro: 'Body inválido' }, { status: 400 })
   }
 
-  const { campanhaId, nome, recompensaTipo, recompensaValorCentavos, janelaCancelamentoDias, diaPagamento } = body as {
+  const { campanhaId, nome, recompensaTipo, recompensaFrequencia, recompensaValorCentavos, janelaCancelamentoDias, diaPagamento } = body as {
     campanhaId?: string
     nome?: string
     recompensaTipo?: string
+    recompensaFrequencia?: string
     recompensaValorCentavos?: number
     janelaCancelamentoDias?: number
     diaPagamento?: number
@@ -24,6 +25,10 @@ export async function PUT(req: NextRequest) {
 
   if (!campanhaId || !nome || !recompensaTipo || recompensaValorCentavos == null) {
     return NextResponse.json({ erro: 'Campos obrigatórios faltando' }, { status: 400 })
+  }
+
+  if (recompensaFrequencia && !['recorrente', 'unico'].includes(recompensaFrequencia)) {
+    return NextResponse.json({ erro: 'Frequência inválida' }, { status: 400 })
   }
 
   if (!['pix', 'credito'].includes(recompensaTipo)) {
@@ -44,6 +49,7 @@ export async function PUT(req: NextRequest) {
     data: {
       nome,
       recompensaTipo,
+      recompensaFrequencia: recompensaFrequencia ?? campanha.recompensaFrequencia,
       recompensaValorCentavos,
       janelaCancelamentoDias: janelaCancelamentoDias ?? campanha.janelaCancelamentoDias,
       diaPagamento: diaPagamento ?? campanha.diaPagamento,
