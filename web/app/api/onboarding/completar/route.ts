@@ -1,63 +1,78 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { nanoid } from 'nanoid'
+import { Prisma } from '@prisma/client'
 
 export async function POST(req: NextRequest) {
-  const body = await req.json()
-  const { token, cnpj, nomeFantasia, razaoSocial, contatoNome, contatoCargo, contatoTelefone, webhookUrl } = body
+  let body: Record<string, unknown>
+  try {
+    body = await req.json()
+  } catch {
+    return NextResponse.json({ erro: 'Body inválido' }, { status: 400 })
+  }
+
+  const { token, cnpj, nomeFantasia, razaoSocial, contatoNome, contatoCargo, contatoTelefone, webhookUrl } = body as {
+    token?: string; cnpj?: string; nomeFantasia?: string; razaoSocial?: string
+    contatoNome?: string; contatoCargo?: string; contatoTelefone?: string; webhookUrl?: string
+  }
 
   if (!token || !nomeFantasia || !contatoNome) {
     return NextResponse.json({ erro: 'Campos obrigatórios faltando' }, { status: 400 })
   }
 
-  const convite = await prisma.conviteParceiro.findFirst({
-    where: { token, usado: false, expiraEm: { gt: new Date() } },
-  })
+  try {
+    await prisma.$transaction(async (tx) => {
+      const convite = await tx.conviteParceiro.findFirst({
+        where: { token, usado: false, expiraEm: { gt: new Date() } },
+      })
+      if (!convite) throw new Error('CONVITE_INVALIDO')
 
-  if (!convite) {
-    return NextResponse.json({ erro: 'Convite inválido ou expirado' }, { status: 400 })
-  }
+      if (cnpj) {
+        const cnpjExistente = await tx.parceiro.findUnique({ where: { cnpj } })
+        if (cnpjExistente) throw new Error('CNPJ_DUPLICADO')
+      }
 
-  if (cnpj) {
-    const cnpjExistente = await prisma.parceiro.findUnique({ where: { cnpj } })
-    if (cnpjExistente) {
-      return NextResponse.json({ erro: 'CNPJ já cadastrado' }, { status: 409 })
-    }
-  }
+      let conta = await tx.conta.findUnique({ where: { email: convite.email } })
+      if (!conta) {
+        conta = await tx.conta.create({
+          data: { email: convite.email, nome: contatoNome, papeis: [] },
+        })
+      }
 
-  let conta = await prisma.conta.findUnique({ where: { email: convite.email } })
-  if (!conta) {
-    conta = await prisma.conta.create({
-      data: { email: convite.email, nome: contatoNome, papeis: [] },
+      const parceiroExistente = await tx.parceiro.findUnique({ where: { contaId: conta.id } })
+      if (parceiroExistente) throw new Error('PARCEIRO_EXISTENTE')
+
+      const apiKey = nanoid(32)
+      await tx.parceiro.create({
+        data: {
+          contaId: conta.id,
+          nomeFantasia,
+          razaoSocial: razaoSocial || null,
+          cnpj: cnpj || null,
+          contatoNome,
+          contatoCargo: contatoCargo || null,
+          contatoTelefone: contatoTelefone || null,
+          webhookUrl: webhookUrl || null,
+          apiKey,
+        },
+      })
+
+      await tx.conviteParceiro.update({
+        where: { token },
+        data: { usado: true },
+      })
     })
+  } catch (err) {
+    if (err instanceof Error) {
+      if (err.message === 'CONVITE_INVALIDO') return NextResponse.json({ erro: 'Convite inválido ou expirado' }, { status: 400 })
+      if (err.message === 'CNPJ_DUPLICADO') return NextResponse.json({ erro: 'CNPJ já cadastrado' }, { status: 409 })
+      if (err.message === 'PARCEIRO_EXISTENTE') return NextResponse.json({ erro: 'Parceiro já cadastrado para este email' }, { status: 409 })
+    }
+    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
+      return NextResponse.json({ erro: 'Dados duplicados' }, { status: 409 })
+    }
+    throw err
   }
-
-  const parceiroExistente = await prisma.parceiro.findUnique({ where: { contaId: conta.id } })
-  if (parceiroExistente) {
-    return NextResponse.json({ erro: 'Parceiro já cadastrado para este email' }, { status: 409 })
-  }
-
-  const apiKey = nanoid(32)
-
-  await prisma.$transaction([
-    prisma.parceiro.create({
-      data: {
-        contaId: conta.id,
-        nomeFantasia,
-        razaoSocial: razaoSocial || null,
-        cnpj: cnpj || null,
-        contatoNome,
-        contatoCargo: contatoCargo || null,
-        contatoTelefone: contatoTelefone || null,
-        webhookUrl: webhookUrl || null,
-        apiKey,
-      },
-    }),
-    prisma.conviteParceiro.update({
-      where: { token },
-      data: { usado: true },
-    }),
-  ])
 
   return NextResponse.json({ ok: true })
 }
