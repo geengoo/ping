@@ -26,7 +26,11 @@ export default async function ConvidarParceiro() {
       data: { email, nomeContato, nomeFantasia, token, expiraEm },
     })
 
-    await enviarConviteParceiro({ para: email, nomeContato, nomeFantasia, token })
+    try {
+      await enviarConviteParceiro({ para: email, nomeContato, nomeFantasia, token })
+    } catch (erro) {
+      console.error('[convidar] Falha ao enviar email de convite:', erro)
+    }
 
     redirect('/admin/parceiros?convite=enviado')
   }

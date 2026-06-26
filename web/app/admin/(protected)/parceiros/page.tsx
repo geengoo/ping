@@ -26,7 +26,7 @@ export default async function ParceirosPage({
   return (
     <div className="space-y-6">
       {convite === 'enviado' && (
-        <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-3 text-sm text-green-700 font-medium">
+        <div className="mb-4 bg-green-50 border border-green-200 rounded-xl px-4 py-3 text-sm text-green-700 font-medium">
           Convite enviado com sucesso.
         </div>
       )}
