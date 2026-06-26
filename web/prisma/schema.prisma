@@ -189,3 +189,16 @@ model WebhookLog {
 
   @@map("webhook_logs")
 }
+
+model ConviteParceiro {
+  id           String   @id @default(uuid())
+  email        String
+  nomeContato  String   @map("nome_contato")
+  nomeFantasia String   @map("nome_fantasia")
+  token        String   @unique @default(cuid())
+  usado        Boolean  @default(false)
+  expiraEm     DateTime @map("expira_em")
+  criadoEm     DateTime @default(now()) @map("criado_em")
+
+  @@map("convites_parceiro")
+}
