@@ -13,9 +13,9 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ slu
     return NextResponse.json({ erro: 'Body inválido' }, { status: 400 })
   }
 
-  const { nome, email, chavePix } = body
-  if (!nome || !email || !chavePix) {
-    return NextResponse.json({ erro: 'Nome, email e chave PIX são obrigatórios' }, { status: 400 })
+  const { nome, email } = body
+  if (!nome || !email) {
+    return NextResponse.json({ erro: 'Nome e email são obrigatórios' }, { status: 400 })
   }
 
   const parceiro = await prisma.parceiro.findUnique({
@@ -58,7 +58,6 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ slu
       afiliadoId: conta.id,
       codigoIndicacao: codigo,
       linkIndicacao,
-      chavePix,
     },
   })
 

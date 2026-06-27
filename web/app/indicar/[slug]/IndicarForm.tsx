@@ -12,7 +12,6 @@ interface IndicarFormProps {
 export function IndicarForm({ slug, nomeParceiro, descricao, recompensaLabel }: IndicarFormProps) {
   const [nome, setNome] = useState('')
   const [email, setEmail] = useState('')
-  const [chavePix, setChavePix] = useState('')
   const [enviando, setEnviando] = useState(false)
   const [link, setLink] = useState('')
   const [copiado, setCopiado] = useState(false)
@@ -26,7 +25,7 @@ export function IndicarForm({ slug, nomeParceiro, descricao, recompensaLabel }: 
       const res = await fetch(`/api/indicar/${slug}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nome, email, chavePix }),
+        body: JSON.stringify({ nome, email }),
       })
       const data = await res.json()
       if (!res.ok) {
@@ -94,16 +93,6 @@ export function IndicarForm({ slug, nomeParceiro, descricao, recompensaLabel }: 
           className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-gray-900"
         />
       </div>
-      <div>
-        <label className="text-xs text-gray-500 font-medium block mb-1">Chave PIX para receber *</label>
-        <input
-          required
-          value={chavePix}
-          onChange={e => setChavePix(e.target.value)}
-          placeholder="CPF, email ou telefone"
-          className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-gray-900"
-        />
-      </div>
       {erro && <p className="text-red-500 text-sm">{erro}</p>}
       <button
         type="submit"
@@ -113,7 +102,7 @@ export function IndicarForm({ slug, nomeParceiro, descricao, recompensaLabel }: 
         {enviando ? 'Gerando seu link...' : 'Quero participar'}
       </button>
       <p className="text-xs text-gray-400 text-center">
-        Ao participar, você concorda em receber seu prêmio em {recompensaLabel}.
+        Seu prêmio será pago via {recompensaLabel}. A chave PIX é solicitada na hora do saque.
       </p>
     </form>
   )
