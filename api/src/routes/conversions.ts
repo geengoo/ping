@@ -12,6 +12,7 @@ conversionsRouter.post('/', async (req, res) => {
     ref_code,
     order_id,
     customer_email,
+    customer_name,
     customer_id,
     amount_cents,
     purchase_type,
@@ -21,6 +22,7 @@ conversionsRouter.post('/', async (req, res) => {
     ref_code?: string
     order_id?: string
     customer_email?: string
+    customer_name?: string
     customer_id?: string
     amount_cents?: number
     purchase_type?: string
@@ -68,6 +70,7 @@ conversionsRouter.post('/', async (req, res) => {
         participacaoId,
         pedidoIdExterno: order_id,
         emailConvidado: customer_email,
+        nomeConvidado: customer_name,
         convidadoIdExterno: customer_id,
         valorCentavos: amount_cents,
         tipoCompra: purchase_type,

@@ -25,9 +25,7 @@ export default async function AfiliadosPage() {
   const conversoes = await prisma.conversao.findMany({
     where: { participacao: { campanha: { parceiroId: sessao.parceiroId } } },
     orderBy: { criadoEm: 'desc' },
-    include: {
-      reward: { select: { valorCentavos: true, status: true } },
-    },
+    include: { reward: { select: { valorCentavos: true } } },
   })
 
   return (
@@ -58,13 +56,13 @@ export default async function AfiliadosPage() {
                     {c.criadoEm.toLocaleDateString('pt-BR')}
                   </td>
                   <td className="px-4 py-3 text-gray-700 max-w-[130px] truncate">
-                    {c.produtoNome}
+                    {c.nomeConvidado || '—'}
                   </td>
                   <td className="px-4 py-3 text-gray-500 text-xs max-w-[160px] truncate">
                     {c.emailConvidado}
                   </td>
                   <td className="px-4 py-3 text-gray-500 text-xs max-w-[120px] truncate">
-                    {c.tipoCompra}
+                    {c.produtoNome}
                   </td>
                   <td className="px-4 py-3 text-right text-gray-700 whitespace-nowrap">
                     {fmt(c.valorCentavos)}

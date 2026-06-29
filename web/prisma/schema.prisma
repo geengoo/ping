@@ -126,6 +126,7 @@ model Conversao {
   participacaoId     String    @map("participacao_id")
   pedidoIdExterno    String    @map("pedido_id_externo")
   emailConvidado     String    @map("email_convidado")
+  nomeConvidado      String?   @map("nome_convidado")
   convidadoIdExterno String?   @map("convidado_id_externo")
   valorCentavos      Int       @map("valor_centavos")
   tipoCompra         String    @map("tipo_compra")
