@@ -56,13 +56,16 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ slu
 
   if (!participacao) {
     const codigo = nanoid(8).toUpperCase()
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://ping.geengoo.io'
+    const urlBase = parceiro.urlDestino || `${process.env.NEXT_PUBLIC_BASE_URL || 'https://ping.geengoo.io'}/a`
+    const linkIndicacao = parceiro.urlDestino
+      ? `${parceiro.urlDestino}?ref=${codigo}`
+      : `${urlBase}/${codigo}`
     participacao = await prisma.participacao.create({
       data: {
         campanhaId: campanha.id,
         afiliadoId: conta.id,
         codigoIndicacao: codigo,
-        linkIndicacao: `${baseUrl}/a/${codigo}`,
+        linkIndicacao,
       },
     })
   }

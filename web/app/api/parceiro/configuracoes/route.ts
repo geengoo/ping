@@ -6,14 +6,27 @@ export async function PUT(req: NextRequest) {
   const sessao = await getSessaoParceiro()
   if (!sessao) return NextResponse.json({ erro: 'Não autorizado' }, { status: 401 })
 
-  let body: { slug?: string }
+  let body: { slug?: string; urlDestino?: string }
   try {
     body = await req.json()
   } catch {
     return NextResponse.json({ erro: 'Body inválido' }, { status: 400 })
   }
 
-  const { slug } = body
+  const { slug, urlDestino } = body
+
+  if (urlDestino !== undefined) {
+    const url = urlDestino.trim()
+    if (url && !url.startsWith('http')) {
+      return NextResponse.json({ erro: 'URL deve começar com http:// ou https://' }, { status: 400 })
+    }
+    await prisma.parceiro.update({
+      where: { id: sessao.parceiroId },
+      data: { urlDestino: url || null },
+    })
+    return NextResponse.json({ ok: true })
+  }
+
   if (!slug) return NextResponse.json({ erro: 'Slug obrigatório' }, { status: 400 })
 
   const slugNormalizado = slug

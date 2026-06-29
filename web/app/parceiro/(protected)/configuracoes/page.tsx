@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { redirect } from 'next/navigation'
 import { CopyButton } from '@/components/parceiro/CopyButton'
 import { SlugForm } from './SlugForm'
+import { UrlDestinoForm } from './UrlDestinoForm'
 
 export default async function ConfiguracoesPage() {
   const sessao = await getSessaoParceiro()
@@ -10,7 +11,7 @@ export default async function ConfiguracoesPage() {
 
   const parceiro = await prisma.parceiro.findUnique({
     where: { id: sessao.parceiroId },
-    select: { apiKey: true, webhookUrl: true, slug: true },
+    select: { apiKey: true, webhookUrl: true, slug: true, urlDestino: true },
   })
 
   if (!parceiro) redirect('/parceiro/login')
@@ -27,6 +28,15 @@ export default async function ConfiguracoesPage() {
         </div>
         <div className="p-6">
           <SlugForm slugAtual={parceiro.slug || ''} baseUrl={baseUrl} />
+        </div>
+      </div>
+
+      <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+        <div className="px-6 py-4 border-b border-gray-100">
+          <h2 className="text-sm font-semibold text-gray-700">URL de destino das indicações</h2>
+        </div>
+        <div className="p-6">
+          <UrlDestinoForm urlAtual={parceiro.urlDestino || ''} />
         </div>
       </div>
 

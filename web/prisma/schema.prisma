@@ -58,6 +58,7 @@ model Parceiro {
   termosHashDoc  String?   @map("termos_hash_doc")
 
   slug             String?   @unique
+  urlDestino       String?   @map("url_destino")
   plano            String?   @default("basico")
   inicioAssinatura DateTime? @map("inicio_assinatura")
   webhookUrl       String?   @map("webhook_url")
