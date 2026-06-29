@@ -9,6 +9,7 @@ export const conversionsRouter = Router()
 conversionsRouter.post('/', async (req, res) => {
   const {
     affiliate_id,
+    ref_code,
     order_id,
     customer_email,
     customer_id,
@@ -17,6 +18,7 @@ conversionsRouter.post('/', async (req, res) => {
     product,
   } = req.body as {
     affiliate_id?: string
+    ref_code?: string
     order_id?: string
     customer_email?: string
     customer_id?: string
@@ -25,14 +27,19 @@ conversionsRouter.post('/', async (req, res) => {
     product?: { name?: string; id?: string; description?: string }
   }
 
-  if (!affiliate_id || !order_id || !customer_email || !amount_cents || !purchase_type || !product?.name) {
-    return void res.status(400).json({ error: 'campos obrigatórios: affiliate_id, order_id, customer_email, amount_cents, purchase_type, product.name' })
+  if ((!affiliate_id && !ref_code) || !order_id || !customer_email || !amount_cents || !purchase_type || !product?.name) {
+    return void res.status(400).json({ error: 'campos obrigatórios: affiliate_id (ou ref_code), order_id, customer_email, amount_cents, purchase_type, product.name' })
   }
 
-  const participacao = await prisma.participacao.findUnique({
-    where: { id: affiliate_id },
-    include: { campanha: true, afiliado: true },
-  })
+  const participacao = ref_code
+    ? await prisma.participacao.findUnique({
+        where: { codigoIndicacao: ref_code },
+        include: { campanha: true, afiliado: true },
+      })
+    : await prisma.participacao.findUnique({
+        where: { id: affiliate_id },
+        include: { campanha: true, afiliado: true },
+      })
   if (!participacao) return void res.status(404).json({ error: 'participação não encontrada' })
 
   if (participacao.campanha.parceiroId !== req.parceiro.id) {
@@ -53,11 +60,12 @@ conversionsRouter.post('/', async (req, res) => {
   }
 
   const rewardValor = calcularReward(participacao.campanha, amount_cents)
+  const participacaoId = participacao.id
 
   try {
     const conversao = await prisma.conversao.create({
       data: {
-        participacaoId: affiliate_id,
+        participacaoId,
         pedidoIdExterno: order_id,
         emailConvidado: customer_email,
         convidadoIdExterno: customer_id,
@@ -68,7 +76,7 @@ conversionsRouter.post('/', async (req, res) => {
         produtoDescricao: product.description,
         reward: {
           create: {
-            participacaoId: affiliate_id,
+            participacaoId,
             tipo: participacao.campanha.recompensaTipo,
             valorCentavos: rewardValor,
             status: 'pendente',
