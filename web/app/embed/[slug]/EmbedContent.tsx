@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 
 interface Saldo { pendente: number; disponivel: number; pago: number }
-interface Conversao { criadoEm: string; produtoNome: string; valorCentavos: number; status: string }
+interface Conversao { criadoEm: string; produtoNome: string; emailConvidado: string; valorCentavos: number; status: string }
 interface Campanha { nome: string; recompensaTipo: string; recompensaValorCentavos: number }
 
 interface Dados {
@@ -124,6 +124,11 @@ export function EmbedContent({ slug, token }: { slug: string; token: string }) {
             </div>
           ))}
         </div>
+        {dados.saldo.pendente > 0 && (
+          <p className="text-xs text-yellow-600 mt-2">
+            Aguardando o período de desistência para liberar o saldo.
+          </p>
+        )}
       </div>
 
       {/* Extrato */}
@@ -132,18 +137,37 @@ export function EmbedContent({ slug, token }: { slug: string; token: string }) {
         {dados.conversoes.length === 0 ? (
           <p className="text-sm text-gray-400 text-center py-4">Nenhuma indicação ainda. Compartilhe seu link!</p>
         ) : (
-          <div className="space-y-1">
-            {dados.conversoes.map((c, i) => (
-              <div key={i} className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
-                <div>
-                  <p className="text-sm text-gray-700">{c.produtoNome}</p>
-                  <p className="text-xs text-gray-400">{new Date(c.criadoEm).toLocaleDateString('pt-BR')}</p>
-                </div>
-                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_COLOR[c.status] || 'bg-gray-100 text-gray-500'}`}>
-                  {STATUS_LABEL[c.status] || c.status}
-                </span>
-              </div>
-            ))}
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-100">
+                  <th className="text-left text-xs text-gray-400 font-medium pb-2 pr-3">Data</th>
+                  <th className="text-left text-xs text-gray-400 font-medium pb-2 pr-3">Nome</th>
+                  <th className="text-left text-xs text-gray-400 font-medium pb-2 pr-3">Email</th>
+                  <th className="text-left text-xs text-gray-400 font-medium pb-2">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {dados.conversoes.map((c, i) => (
+                  <tr key={i}>
+                    <td className="py-2 pr-3 text-xs text-gray-500 whitespace-nowrap">
+                      {new Date(c.criadoEm).toLocaleDateString('pt-BR')}
+                    </td>
+                    <td className="py-2 pr-3 text-xs text-gray-700 max-w-[100px] truncate">
+                      {c.produtoNome}
+                    </td>
+                    <td className="py-2 pr-3 text-xs text-gray-500 max-w-[120px] truncate">
+                      {c.emailConvidado}
+                    </td>
+                    <td className="py-2">
+                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium whitespace-nowrap ${STATUS_COLOR[c.status] || 'bg-gray-100 text-gray-500'}`}>
+                        {STATUS_LABEL[c.status] || c.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
       </div>

@@ -85,7 +85,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ slu
     where: { participacaoId: participacao.id },
     orderBy: { criadoEm: 'desc' },
     take: 20,
-    select: { criadoEm: true, produtoNome: true, valorCentavos: true, status: true },
+    select: { criadoEm: true, produtoNome: true, emailConvidado: true, valorCentavos: true, status: true },
   })
 
   return NextResponse.json({
