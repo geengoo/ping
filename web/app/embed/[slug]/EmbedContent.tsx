@@ -69,6 +69,8 @@ export function EmbedContent({ slug, token }: { slug: string; token: string }) {
     <div className="p-5 space-y-5 font-sans">
 
       {/* LINK — destaque principal */}
+      <div>
+      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Seu link de indicação</p>
       <div className="bg-gray-900 rounded-2xl p-5 text-white">
         <p className="text-sm font-semibold mb-1">Seu link de indicação</p>
         <p className="text-xs text-gray-400 mb-4">
@@ -105,24 +107,28 @@ export function EmbedContent({ slug, token }: { slug: string; token: string }) {
           </button>
         </div>
       </div>
+      </div>
 
       {/* Saldo */}
-      <div className="grid grid-cols-3 gap-3">
-        {[
-          { label: 'Pendente',   valor: dados.saldo.pendente,   cor: 'text-yellow-600' },
-          { label: 'Disponível', valor: dados.saldo.disponivel, cor: 'text-green-600' },
-          { label: 'Pago',       valor: dados.saldo.pago,       cor: 'text-gray-600' },
-        ].map(({ label, valor, cor }) => (
-          <div key={label} className="bg-gray-50 rounded-xl p-3 text-center">
-            <p className="text-xs text-gray-400 mb-1">{label}</p>
-            <p className={`text-base font-bold ${cor}`}>{fmt(valor)}</p>
-          </div>
-        ))}
+      <div>
+        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Seu saldo</p>
+        <div className="grid grid-cols-3 gap-3">
+          {[
+            { label: 'Pendente',   valor: dados.saldo.pendente,   cor: 'text-yellow-600' },
+            { label: 'Disponível', valor: dados.saldo.disponivel, cor: 'text-green-600' },
+            { label: 'Pago',       valor: dados.saldo.pago,       cor: 'text-gray-600' },
+          ].map(({ label, valor, cor }) => (
+            <div key={label} className="bg-gray-50 rounded-xl p-3 text-center">
+              <p className="text-xs text-gray-400 mb-1">{label}</p>
+              <p className={`text-base font-bold ${cor}`}>{fmt(valor)}</p>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Extrato */}
       <div>
-        <p className="text-xs text-gray-400 font-medium mb-2">Suas indicações</p>
+        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Suas indicações</p>
         {dados.conversoes.length === 0 ? (
           <p className="text-sm text-gray-400 text-center py-4">Nenhuma indicação ainda. Compartilhe seu link!</p>
         ) : (
@@ -133,12 +139,9 @@ export function EmbedContent({ slug, token }: { slug: string; token: string }) {
                   <p className="text-sm text-gray-700">{c.produtoNome}</p>
                   <p className="text-xs text-gray-400">{new Date(c.criadoEm).toLocaleDateString('pt-BR')}</p>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-gray-700">{fmt(c.valorCentavos)}</span>
-                  <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_COLOR[c.status] || 'bg-gray-100 text-gray-500'}`}>
-                    {STATUS_LABEL[c.status] || c.status}
-                  </span>
-                </div>
+                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_COLOR[c.status] || 'bg-gray-100 text-gray-500'}`}>
+                  {STATUS_LABEL[c.status] || c.status}
+                </span>
               </div>
             ))}
           </div>
