@@ -21,7 +21,7 @@ export default async function AfiliadoPage({ params }: { params: Promise<{ codig
       conversoes: {
         orderBy: { criadoEm: 'desc' },
         take: 50,
-        select: { criadoEm: true, produtoNome: true, valorCentavos: true, status: true },
+        select: { criadoEm: true, produtoNome: true, nomeConvidado: true, emailConvidado: true, valorCentavos: true, status: true },
       },
       rewards: {
         select: { id: true, status: true, valorCentavos: true, solicitadoEm: true, pagoEm: true },
@@ -57,6 +57,7 @@ export default async function AfiliadoPage({ params }: { params: Promise<{ codig
       conversoes={participacao.conversoes.map(c => ({
         ...c,
         criadoEm: c.criadoEm.toISOString(),
+        nomeConvidado: c.nomeConvidado ?? null,
       }))}
       temSaldoDisponivel={saldo.disponivel > 0}
     />

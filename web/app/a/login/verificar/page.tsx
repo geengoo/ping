@@ -24,8 +24,10 @@ function VerificarForm() {
     if (!res.ok) {
       setErro('Código inválido ou expirado. Tente novamente.')
       setLoading(false)
+      return
     }
-    // redirect is handled server-side
+    const data = await res.json()
+    window.location.href = data.redirectTo || '/a/login'
   }
 
   return (
